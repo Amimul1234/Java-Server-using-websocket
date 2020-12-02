@@ -4,6 +4,9 @@ import org.example.entities.AllUserAndRollEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDbControl{
 
@@ -51,7 +54,32 @@ public class UserDbControl{
         em.getTransaction().commit();
     }
 
-    public void findUser(String s, String s1) {
-        em.
+    public List<String> findUser(String userName, String password) {
+        Query query = em.createQuery(
+                "SELECT c FROM AllUserAndRollEntity c WHERE c.name = :username");
+
+        query.setParameter("username", userName);
+
+        List<AllUserAndRollEntity> resultList = query.getResultList();
+
+        for(AllUserAndRollEntity allUserAndRollEntity : resultList)
+        {
+            if(allUserAndRollEntity.getPassword().equals(password))
+            {
+                List<String> response = new ArrayList<>();
+
+                response.add("false");//This is for error indication
+                response.add(allUserAndRollEntity.getName());
+                response.add(allUserAndRollEntity.getImage());
+                response.add(allUserAndRollEntity.getRole());
+
+                return response;
+            }
+        }
+
+        List<String> response = new ArrayList<>();
+        response.add("true");
+
+        return response;
     }
 }
