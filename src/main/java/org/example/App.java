@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.DBOperationClass.UserDbControl;
+import org.example.entities.AllUserAndRollEntity;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -42,7 +43,7 @@ public class App
                                 {
                                     if(role.equals("Admin"))
                                     {
-                                        adminControls(); //Controls of admin
+                                        adminControls(userDbControl, inputStream, outputStream); //Controls of admin
                                     }
                                     else if(role.equals("Viewer"))
                                     {
@@ -82,7 +83,48 @@ public class App
 
     }
 
-    private static void adminControls() {
+    private static void adminControls(UserDbControl userDbControl, InputStream inputStream, OutputStream outputStream) {
+        try {
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+
+            List<String> clientResponse = (List<String>) objectInputStream.readObject();
+
+            AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
+
+            if(clientResponse.get(0).equals("Create a new user"))
+            {
+                allUserAndRollEntity.setName(clientResponse.get(1));
+                allUserAndRollEntity.setImage(clientResponse.get(2));
+                allUserAndRollEntity.setRole(clientResponse.get(3));
+                allUserAndRollEntity.setPassword(clientResponse.get(4));
+
+                userDbControl.createNewUser(allUserAndRollEntity);
+            }
+            else if(clientResponse.get(0).equals("Update existence user"))
+            {
+                allUserAndRollEntity.setName(clientResponse.get(1));
+                allUserAndRollEntity.setImage(clientResponse.get(2));
+                allUserAndRollEntity.setRole(clientResponse.get(3));
+                allUserAndRollEntity.setPassword(clientResponse.get(4));
+                allUserAndRollEntity.setId(Integer.parseInt(clientResponse.get(5)));
+
+                userDbControl.updateUser(allUserAndRollEntity);
+            }
+            else if(clientResponse.get(0).equals("Remove existence user"))
+            {
+                allUserAndRollEntity.setName(clientResponse.get(1));
+                allUserAndRollEntity.setImage(clientResponse.get(2));
+                allUserAndRollEntity.setRole(clientResponse.get(3));
+                allUserAndRollEntity.setPassword(clientResponse.get(4));
+
+                allUserAndRollEntity.setId(Integer.parseInt(clientResponse.get(5)));
+
+                userDbControl.removeUser(allUserAndRollEntity);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static String  credentialChecker(UserDbControl userDbControl, InputStream inputStream, OutputStream outputStream)
