@@ -55,6 +55,7 @@ public class UserDbControl{
     }
 
     public List<String> findUser(String userName, String password) {
+
         Query query = em.createQuery(
                 "SELECT c FROM AllUserAndRollEntity c WHERE c.name = :username");
 
@@ -64,7 +65,7 @@ public class UserDbControl{
 
         for(AllUserAndRollEntity allUserAndRollEntity : resultList)
         {
-            if(allUserAndRollEntity.getPassword().equals(password))
+             if(allUserAndRollEntity.getPassword().equals(password))
             {
                 List<String> response = new ArrayList<>();
 

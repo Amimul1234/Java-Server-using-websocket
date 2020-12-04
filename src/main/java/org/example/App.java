@@ -1,8 +1,6 @@
 package org.example;
 
 import org.example.DBOperationClass.UserDbControl;
-import org.example.entities.AllUserAndRollEntity;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -34,29 +32,33 @@ public class App
                         @Override
                         public void run() {
                             try {
-                                InputStream inputStream = socket.getInputStream();
-                                OutputStream outputStream = socket.getOutputStream();
 
-                                String role = credentialChecker(userDbControl, inputStream, outputStream); //Checking for credentials
+                                String role = null;
 
-                                if(role != null)
+                                while(role == null)
                                 {
-                                    if(role.equals("Admin"))
+                                    role = credentialChecker(userDbControl, socket); //Checking for credentials
+
+                                    if(role != null)
                                     {
-                                        adminControls(userDbControl, inputStream, outputStream); //Controls of admin
+                                        if(role.equals("Admin"))
+                                        {
+                                            //adminControls(userDbControl); //Controls of admin
+                                        }
+                                        else if(role.equals("Viewer"))
+                                        {
+                                            viewControls(); //Viewer controls
+                                        }
+                                        else
+                                        {
+                                            manufacturerControls(); //manufacturer controls
+                                        }
                                     }
-                                    else if(role.equals("Viewer"))
-                                    {
-                                        viewControls(); //Viewer controls
-                                    }
+
                                     else
                                     {
-                                        manufacturerControls(); //manufacturer controls
+                                        role =  credentialChecker(userDbControl, socket);
                                     }
-                                }
-                                else
-                                {
-                                    credentialChecker(userDbControl, inputStream, outputStream);
                                 }
 
                             } catch (Exception e) {
@@ -83,7 +85,9 @@ public class App
 
     }
 
-    private static void adminControls(UserDbControl userDbControl, InputStream inputStream, OutputStream outputStream) {
+    /*
+    private static void adminControls(UserDbControl userDbControl)
+    {
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
 
@@ -127,16 +131,17 @@ public class App
         }
     }
 
-    private static String  credentialChecker(UserDbControl userDbControl, InputStream inputStream, OutputStream outputStream)
+     */
+
+    private static String  credentialChecker(UserDbControl userDbControl, Socket socket)
     {
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
             List<String> credential  = (List<String>) objectInputStream.readObject();
 
             List<String> response = userDbControl.findUser(credential.get(0), credential.get(1));
 
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
 
             if(response.get(0).equals("false"))
             {
@@ -162,6 +167,8 @@ public class App
                 }
             }
 
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+
             objectOutputStream.writeObject(response);
             objectOutputStream.flush();
 
@@ -172,7 +179,7 @@ public class App
 
         } catch (Exception e) {
             e.printStackTrace();
+            return "connection reset";
         }
-        return null;
     }
 }
