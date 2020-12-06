@@ -3,8 +3,9 @@ package sharedClasses;
 import java.io.Serializable;
 
 public class User implements Serializable {
+    private static final long serialVersionUID = 6529685098267757690L;
     private String name;
-    private byte[] image = new byte[20000];
+    private byte[] image;
     private String role;
     private String password;
 
@@ -48,5 +49,10 @@ public class User implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setByteArraySize(int size)
+    {
+        image = new byte[size];
     }
 }

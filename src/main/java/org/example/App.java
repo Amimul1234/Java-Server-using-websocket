@@ -2,6 +2,8 @@ package org.example;
 
 import org.example.DBOperationClass.UserDbControl;
 import org.example.entities.AllUserAndRollEntity;
+import sharedClasses.User;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -110,6 +112,12 @@ public class App
 
             if(clientResponse.get(0).equals("1"))
             {
+                ObjectInputStream objectInputStream1 = new ObjectInputStream(socket.getInputStream());
+
+                User user = (User) objectInputStream1.readObject();
+
+                System.out.println(user.getName());
+
                 /*
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
