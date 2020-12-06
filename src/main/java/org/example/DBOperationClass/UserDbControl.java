@@ -12,6 +12,10 @@ public class UserDbControl{
 
     private static UserDbControl userDbControl = null;
 
+
+    private UserDbControl() {
+    }
+
     EntityManagerFactory emf = Persistence.createEntityManagerFactory("user_database_config");
     EntityManager em = emf.createEntityManager();
 

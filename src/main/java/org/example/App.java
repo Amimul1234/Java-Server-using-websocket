@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.DBOperationClass.UserDbControl;
+import org.example.entities.AllUserAndRollEntity;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,7 +16,7 @@ public class App
         ServerSocket serverSocket = null;
 
         try {
-            serverSocket = new ServerSocket(1242);
+            serverSocket = new ServerSocket(50000);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -43,15 +44,15 @@ public class App
                                     {
                                         if(role.equals("Admin"))
                                         {
-                                            //adminControls(userDbControl); //Controls of admin
+                                            adminControls(userDbControl, socket);
                                         }
                                         else if(role.equals("Viewer"))
                                         {
-                                            viewControls(); //Viewer controls
+                                            viewControls(socket); //Viewer controls
                                         }
                                         else
                                         {
-                                            manufacturerControls(); //manufacturer controls
+                                            manufacturerControls(socket); //manufacturer controls
                                         }
                                     }
 
@@ -75,36 +76,52 @@ public class App
 
     }
 
-    private static void manufacturerControls()
-    {
-
-    }
-
-    private static void viewControls()
-    {
-
-    }
-
-    /*
-    private static void adminControls(UserDbControl userDbControl)
+    private static void manufacturerControls(Socket socket)
     {
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            List<String> clientResponse = (List<String>) objectInputStream.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void viewControls(Socket socket)
+    {
+        try
+        {
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+
+            List<String> clientResponse = (List<String>) objectInputStream.readObject();
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private static void adminControls(UserDbControl userDbControl, Socket socket)
+    {
+        try {
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
             List<String> clientResponse = (List<String>) objectInputStream.readObject();
 
             AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
 
-            if(clientResponse.get(0).equals("Create a new user"))
+            if(clientResponse.get(0).equals("1"))
             {
+                /*
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
                 allUserAndRollEntity.setRole(clientResponse.get(3));
                 allUserAndRollEntity.setPassword(clientResponse.get(4));
 
                 userDbControl.createNewUser(allUserAndRollEntity);
+
+                 */
             }
-            else if(clientResponse.get(0).equals("Update existence user"))
+
+            else if(clientResponse.get(0).equals("2"))
             {
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
@@ -114,7 +131,8 @@ public class App
 
                 userDbControl.updateUser(allUserAndRollEntity);
             }
-            else if(clientResponse.get(0).equals("Remove existence user"))
+
+            else if(clientResponse.get(0).equals("3"))
             {
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
@@ -130,8 +148,6 @@ public class App
             e.printStackTrace();
         }
     }
-
-     */
 
     private static String  credentialChecker(UserDbControl userDbControl, Socket socket)
     {
