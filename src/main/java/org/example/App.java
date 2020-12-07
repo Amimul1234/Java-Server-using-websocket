@@ -3,14 +3,18 @@ package org.example;
 import org.example.DBOperationClass.UserDbControl;
 import org.example.entities.AllUserAndRollEntity;
 import sharedClasses.User;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class App
 {
+
+    private static final String server_image_directory = "H:/sever_image/";
+
     public static void main( String[] args )
     {
         UserDbControl userDbControl = UserDbControl.getInstance();
@@ -28,6 +32,7 @@ public class App
             try {
                 Socket socket;
                 if (serverSocket != null) {
+
                     socket = serverSocket.accept();
 
                     new Thread()
@@ -108,29 +113,47 @@ public class App
 
             List<String> clientResponse = (List<String>) objectInputStream.readObject();
 
-            AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
-
             if(clientResponse.get(0).equals("1"))
             {
                 ObjectInputStream objectInputStream1 = new ObjectInputStream(socket.getInputStream());
 
                 User user = (User) objectInputStream1.readObject();
 
-                System.out.println(user.getName());
+                String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-                /*
-                allUserAndRollEntity.setName(clientResponse.get(1));
-                allUserAndRollEntity.setImage(clientResponse.get(2));
-                allUserAndRollEntity.setRole(clientResponse.get(3));
-                allUserAndRollEntity.setPassword(clientResponse.get(4));
+                String directory = server_image_directory + timeStamp + ".jpg"; //Giving unique name through timestamp
 
-                userDbControl.createNewUser(allUserAndRollEntity);
+                FileOutputStream fileOutputStream = new FileOutputStream(directory);
+                fileOutputStream.write(user.getImage(), 0, user.getImage().length);
+                fileOutputStream.close();
 
-                 */
+                AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
+
+                allUserAndRollEntity.setName(user.getName());
+                allUserAndRollEntity.setRole(user.getRole());
+                allUserAndRollEntity.setImage(directory);
+                allUserAndRollEntity.setPassword(user.getPassword());
+
+                if(userDbControl.createNewUser(allUserAndRollEntity).equals("success"))
+                {
+
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                    String response = "success";
+                    objectOutputStream.writeObject(response);
+                    objectOutputStream.flush();
+
+                }else {
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                    String response = "failed";
+                    objectOutputStream.writeObject(response);
+                    objectOutputStream.flush();
+                }
+
             }
 
             else if(clientResponse.get(0).equals("2"))
             {
+                AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
                 allUserAndRollEntity.setRole(clientResponse.get(3));
@@ -142,6 +165,8 @@ public class App
 
             else if(clientResponse.get(0).equals("3"))
             {
+                AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
+
                 allUserAndRollEntity.setName(clientResponse.get(1));
                 allUserAndRollEntity.setImage(clientResponse.get(2));
                 allUserAndRollEntity.setRole(clientResponse.get(3));
@@ -164,7 +189,16 @@ public class App
 
             List<String> credential  = (List<String>) objectInputStream.readObject();
 
-            List<String> response = userDbControl.findUser(credential.get(0), credential.get(1));
+            List<String> response;
+
+            if(credential.get(1).equals(""))
+            {
+                response = userDbControl.findUser(credential.get(0), null);
+            }
+            else
+            {
+                response = userDbControl.findUser(credential.get(0), credential.get(1));
+            }
 
 
             if(response.get(0).equals("false"))

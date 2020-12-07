@@ -27,15 +27,21 @@ public class UserDbControl{
         return userDbControl;
     }
 
-    public synchronized void createNewUser(AllUserAndRollEntity allUserAndRollEntity)
+    public synchronized String createNewUser(AllUserAndRollEntity allUserAndRollEntity)
     {
         if(!em.getTransaction().isActive())
         {
             em.getTransaction().begin();
         }
-
-        em.persist(allUserAndRollEntity);
-        em.getTransaction().commit();
+        try
+        {
+            em.persist(allUserAndRollEntity);
+            em.getTransaction().commit();
+            return "success";
+        }catch (Exception e)
+        {
+            return "failed";
+        }
     }
 
     public void removeUser(AllUserAndRollEntity allUserAndRollEntity)
@@ -67,18 +73,39 @@ public class UserDbControl{
 
         List<AllUserAndRollEntity> resultList = query.getResultList();
 
-        for(AllUserAndRollEntity allUserAndRollEntity : resultList)
+        if(password == null)
         {
-             if(allUserAndRollEntity.getPassword().equals(password))
+            for(AllUserAndRollEntity allUserAndRollEntity : resultList)
             {
-                List<String> response = new ArrayList<>();
+                if(allUserAndRollEntity.getRole().equals("Viewer"))
+                {
+                    List<String> response = new ArrayList<>();
 
-                response.add("false");//This is for error indication
-                response.add(allUserAndRollEntity.getName());
-                response.add(allUserAndRollEntity.getImage());
-                response.add(allUserAndRollEntity.getRole());
+                    response.add("false");//This is for error indication
+                    response.add(allUserAndRollEntity.getName());
+                    response.add(allUserAndRollEntity.getImage());
+                    response.add(allUserAndRollEntity.getRole());
 
-                return response;
+                    return response;
+                }
+            }
+        }
+
+        else
+        {
+            for(AllUserAndRollEntity allUserAndRollEntity : resultList)
+            {
+                if(allUserAndRollEntity.getPassword().equals(password))
+                {
+                    List<String> response = new ArrayList<>();
+
+                    response.add("false");//This is for error indication
+                    response.add(allUserAndRollEntity.getName());
+                    response.add(allUserAndRollEntity.getImage());
+                    response.add(allUserAndRollEntity.getRole());
+
+                    return response;
+                }
             }
         }
 
