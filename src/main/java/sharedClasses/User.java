@@ -1,15 +1,23 @@
 package sharedClasses;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class User implements Serializable {
+    @Serial
     private static final long serialVersionUID = 6529685098267757690L;
-    private String name;
-    private byte[] image;
-    private String role;
-    private String password;
+    private boolean isSuccessful;
+     private String name;
+     private byte[] image;
+     private String role;
+     private String password;
+     private List<String> actions;
 
     public User() {
+        actions = new ArrayList<>();
+        isSuccessful = false;
     }
 
     public User(String name, byte[] image, String role, String password) {
@@ -17,6 +25,8 @@ public class User implements Serializable {
         this.image = image;
         this.role = role;
         this.password = password;
+        this.actions = new ArrayList<>();
+        isSuccessful = false;
     }
 
     public String getName() {
@@ -54,5 +64,25 @@ public class User implements Serializable {
     public void setByteArraySize(int size)
     {
         image = new byte[size];
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public List<String> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<String> actions) {
+        this.actions = actions;
+    }
+
+    public boolean isSuccessful() {
+        return isSuccessful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        isSuccessful = successful;
     }
 }
