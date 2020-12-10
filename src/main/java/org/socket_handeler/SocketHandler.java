@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +42,6 @@ public class SocketHandler {
     {
         if(socketHandler == null)
             socketHandler = new SocketHandler();
-
         return socketHandler;
     }
 
@@ -156,6 +156,12 @@ public class SocketHandler {
                     }
                 }
                 case "2" -> {
+                    List<User> userList = new ArrayList<>(userDbControl.getAllUser());
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                    objectOutputStream.writeObject(userList);
+                    objectOutputStream.flush();
+
+
                     /*
                     allUserAndRollEntity.setName(clientResponse.get(1));
                     allUserAndRollEntity.setImage(clientResponse.get(2));

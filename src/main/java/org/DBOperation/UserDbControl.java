@@ -67,6 +67,22 @@ public class UserDbControl{
         em.getTransaction().commit();
     }
 
+    public synchronized List<User> getAllUser()
+    {
+        em.getTransaction().begin();
+        List<AllUserAndRollEntity> allUserAndRollEntityList= em.createQuery("SELECT t from AllUserAndRollEntity t").getResultList();
+        em.getTransaction().commit();
+        List<User> userList = new ArrayList<>();
+
+        for(AllUserAndRollEntity allUserAndRollEntity : allUserAndRollEntityList)
+        {
+            User user = manipulate(allUserAndRollEntity);
+            userList.add(user);
+        }
+
+        return userList;
+    }
+
     public synchronized User userLoginChecker(LoginReq loginReq) {
 
         Query query = em.createQuery(
@@ -107,6 +123,7 @@ public class UserDbControl{
         user.setSuccessful(true);
         user.setName(allUserAndRollEntity.getName());
         user.setRole(allUserAndRollEntity.getRole());
+        user.setUser_id(allUserAndRollEntity.getId());
 
         List<String> actions = new ArrayList<>();
 
