@@ -1,4 +1,4 @@
-package org.DBOperation;
+package org.dboperation;
 
 import org.entities.AllUserAndRollEntity;
 import sharedClasses.LoginReq;

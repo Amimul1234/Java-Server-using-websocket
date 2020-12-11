@@ -1,6 +1,6 @@
 package org.socket_handeler;
 
-import org.DBOperation.UserDbControl;
+import org.dboperation.UserDbControl;
 import org.entities.AllUserAndRollEntity;
 import sharedClasses.LoginReq;
 import sharedClasses.User;
@@ -11,9 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class SocketHandler {
 
@@ -42,6 +40,7 @@ public class SocketHandler {
     {
         if(socketHandler == null)
             socketHandler = new SocketHandler();
+
         return socketHandler;
     }
 
@@ -112,7 +111,7 @@ public class SocketHandler {
         }
     }
 
-    private static void adminControls(UserDbControl userDbControl, Socket socket)
+    private static void adminControls(UserDbControl userDbControl, Socket socket) //This is on different thread for every connection
     {
         AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
         String admin_req_from_client;
@@ -120,7 +119,6 @@ public class SocketHandler {
         try {
 
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-
             admin_req_from_client = (String) objectInputStream.readObject();
 
             switch (admin_req_from_client) {
@@ -155,13 +153,40 @@ public class SocketHandler {
                         objectOutputStream.flush();
                     }
                 }
+
                 case "2" -> {
-                    List<User> userList = new ArrayList<>(userDbControl.getAllUser());
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                    objectOutputStream.writeObject(userList);
-                    objectOutputStream.flush();
 
+                    Timer t = new Timer();
 
+                    t.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            System.out.println("Called");
+                            List<User> userList = new ArrayList<>(userDbControl.getAllUser());
+
+                            try {
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                                objectOutputStream.writeObject(userList);
+                                objectOutputStream.flush();
+                            }
+                            catch (IOException e) {
+                                t.cancel();
+                                e.printStackTrace();
+                            }
+                        }
+                    }, 500, 5000);
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ObjectInputStream objectInputStream1 = new ObjectInputStream(socket.getInputStream());
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                     /*
                     allUserAndRollEntity.setName(clientResponse.get(1));
                     allUserAndRollEntity.setImage(clientResponse.get(2));
@@ -214,3 +239,4 @@ public class SocketHandler {
         }
     }
 }
+
