@@ -49,8 +49,10 @@ public class UserDbControl{
 
     public synchronized void removeUser(AllUserAndRollEntity allUserAndRollEntity)
     {
+        AllUserAndRollEntity allUserAndRollEntity1 = em.find(AllUserAndRollEntity.class, allUserAndRollEntity.getId());
+
         em.getTransaction().begin();
-        em.remove(allUserAndRollEntity);
+        em.remove(allUserAndRollEntity1);
         em.getTransaction().commit();
     }
 
@@ -58,12 +60,14 @@ public class UserDbControl{
     {
         AllUserAndRollEntity allUserAndRollEntity1 = em.find(AllUserAndRollEntity.class, allUserAndRollEntity.getId());
 
+        String image = allUserAndRollEntity1.getImage();
+
         em.getTransaction().begin();
         allUserAndRollEntity1.setId(allUserAndRollEntity.getId());
-        allUserAndRollEntity1.setImage(allUserAndRollEntity.getImage());
         allUserAndRollEntity1.setName(allUserAndRollEntity.getName());
         allUserAndRollEntity1.setPassword(allUserAndRollEntity.getPassword());
         allUserAndRollEntity1.setRole(allUserAndRollEntity.getRole());
+        allUserAndRollEntity1.setImage(image);
         em.getTransaction().commit();
     }
 
@@ -124,6 +128,7 @@ public class UserDbControl{
         user.setName(allUserAndRollEntity.getName());
         user.setRole(allUserAndRollEntity.getRole());
         user.setUser_id(allUserAndRollEntity.getId());
+        user.setPassword(allUserAndRollEntity.getPassword());
 
         List<String> actions = new ArrayList<>();
 

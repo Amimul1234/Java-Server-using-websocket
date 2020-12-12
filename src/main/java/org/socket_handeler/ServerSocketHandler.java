@@ -13,13 +13,13 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class SocketHandler {
+public class ServerSocketHandler {
 
-    private static SocketHandler socketHandler = null;
+    private static ServerSocketHandler serverSocketHandler = null;
     private final UserDbControl userDbControl;
     private static final String server_image_directory = "H:/sever_image/";
 
-    private SocketHandler()
+    private ServerSocketHandler()
     {
         userDbControl = UserDbControl.getInstance();
         try {
@@ -36,12 +36,12 @@ public class SocketHandler {
         }
     }
 
-    public static SocketHandler getInstance()
+    public static ServerSocketHandler getInstance()
     {
-        if(socketHandler == null)
-            socketHandler = new SocketHandler();
+        if(serverSocketHandler == null)
+            serverSocketHandler = new ServerSocketHandler();
 
-        return socketHandler;
+        return serverSocketHandler;
     }
 
     private void necessaryActionTaker(Socket socket)
@@ -52,17 +52,20 @@ public class SocketHandler {
             public void run() {
 
                 try {
+
+                    ClientHandler clientHandler = new ClientHandler(socket);
+
                     String role = null;
 
                     while(role == null)
                     {
-                        role = credentialChecker(userDbControl, socket); //Checking for credentials
+                        role = credentialChecker(userDbControl, clientHandler); //Checking for credentials
 
                         if(role != null)
                         {
                             if(role.equals("Admin"))
                             {
-                                adminControls(userDbControl, socket);
+                                adminControls(userDbControl, clientHandler);
                             }
                             else if(role.equals("Viewer"))
                             {
@@ -76,7 +79,7 @@ public class SocketHandler {
 
                         else
                         {
-                            role =  credentialChecker(userDbControl, socket);
+                            role =  credentialChecker(userDbControl, clientHandler);
                         }
                     }
 
@@ -111,20 +114,20 @@ public class SocketHandler {
         }
     }
 
-    private static void adminControls(UserDbControl userDbControl, Socket socket) //This is on different thread for every connection
+    private static void adminControls(UserDbControl userDbControl, ClientHandler clientHandler) //This is on different thread for every connection
     {
         AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
         String admin_req_from_client;
 
         try {
 
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            admin_req_from_client = (String) objectInputStream.readObject();
+            ObjectInputStream objectInputStream = clientHandler.getObjectInputStream();
+            admin_req_from_client = (String) objectInputStream.readUnshared();
 
             switch (admin_req_from_client) {
 
                 case "1" -> {
-                    ObjectInputStream objectInputStream1 = new ObjectInputStream(socket.getInputStream());
+                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
                     User user = (User) objectInputStream1.readObject();
 
                     String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -141,72 +144,67 @@ public class SocketHandler {
 
                     if (userDbControl.createNewUser(allUserAndRollEntity).equals("success")) {
 
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                        ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
                         String response = "success";
                         objectOutputStream.writeObject(response);
                         objectOutputStream.flush();
 
+                        adminControls(userDbControl, clientHandler);
+
                     } else {
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                        ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
                         String response = "failed";
                         objectOutputStream.writeObject(response);
                         objectOutputStream.flush();
+
+                        adminControls(userDbControl, clientHandler);
                     }
                 }
 
                 case "2" -> {
 
-                    Timer t = new Timer();
+                    List<User> userList = new ArrayList<>(userDbControl.getAllUser());
+                    ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                    objectOutputStream.writeObject(userList);
+                    objectOutputStream.flush();
 
-                    t.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            System.out.println("Called");
-                            List<User> userList = new ArrayList<>(userDbControl.getAllUser());
+                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
+                    try {
+                        User user = (User) objectInputStream1.readObject();
+                        AllUserAndRollEntity allUserAndRollEntity1 = new AllUserAndRollEntity();
+                        allUserAndRollEntity1.setRole(user.getRole());
+                        allUserAndRollEntity1.setName(user.getName());
+                        allUserAndRollEntity1.setPassword(user.getPassword());
+                        allUserAndRollEntity1.setId(user.getUser_id());
+                        userDbControl.updateUser(allUserAndRollEntity1);
+                    } catch (IOException | ClassNotFoundException e) {
+                        //t.cancel();
+                        e.printStackTrace();
+                    }
 
-                            try {
-                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                                objectOutputStream.writeObject(userList);
-                                objectOutputStream.flush();
-                            }
-                            catch (IOException e) {
-                                t.cancel();
-                                e.printStackTrace();
-                            }
-                        }
-                    }, 500, 5000);
+                    adminControls(userDbControl, clientHandler);//Going to main menu again
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                ObjectInputStream objectInputStream1 = new ObjectInputStream(socket.getInputStream());
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    /*
-                    allUserAndRollEntity.setName(clientResponse.get(1));
-                    allUserAndRollEntity.setImage(clientResponse.get(2));
-                    allUserAndRollEntity.setRole(clientResponse.get(3));
-                    allUserAndRollEntity.setPassword(clientResponse.get(4));
-                    allUserAndRollEntity.setId(Integer.parseInt(clientResponse.get(5)));
-                    userDbControl.updateUser(allUserAndRollEntity);
-
-                     */
                 }
                 case "3" -> {
-                    /*
-                    allUserAndRollEntity.setName(clientResponse.get(1));
-                    allUserAndRollEntity.setImage(clientResponse.get(2));
-                    allUserAndRollEntity.setRole(clientResponse.get(3));
-                    allUserAndRollEntity.setPassword(clientResponse.get(4));
-                    allUserAndRollEntity.setId(Integer.parseInt(clientResponse.get(5)));
-                    userDbControl.removeUser(allUserAndRollEntity);
 
-                     */
+                    List<User> userList = new ArrayList<>(userDbControl.getAllUser());
+                    ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                    objectOutputStream.writeObject(userList);
+                    objectOutputStream.flush();
+
+                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
+                    try {
+                        User user = (User) objectInputStream1.readObject();
+                        AllUserAndRollEntity allUserAndRollEntity1 = new AllUserAndRollEntity();
+                        allUserAndRollEntity1.setId(user.getUser_id());
+                        userDbControl.removeUser(allUserAndRollEntity1);
+                    } catch (IOException | ClassNotFoundException e) {
+                        //t.cancel();
+                        e.printStackTrace();
+                    }
+
+                    adminControls(userDbControl, clientHandler);//Going to main menu again
+
                 }
             }
 
@@ -215,16 +213,16 @@ public class SocketHandler {
         }
     }
 
-    private static String  credentialChecker(UserDbControl userDbControl, Socket socket)
+    private static String  credentialChecker(UserDbControl userDbControl, ClientHandler socket)
     {
         try {
 
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            ObjectInputStream objectInputStream = socket.getObjectInputStream();
             LoginReq loginReq = (LoginReq) objectInputStream.readObject();//Getting loginReq object from user
 
             User user = userDbControl.userLoginChecker(loginReq);
 
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            ObjectOutputStream objectOutputStream = socket.getObjectOutputStream();
             objectOutputStream.writeObject(user);
             objectOutputStream.flush();//Writing response to the user
 

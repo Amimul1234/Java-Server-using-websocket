@@ -1,11 +1,11 @@
 package org;
 
-import org.socket_handeler.SocketHandler;
+import org.socket_handeler.ServerSocketHandler;
 
 public class App
 {
     public static void main( String[] args )
     {
-        SocketHandler.getInstance();//Instantiating Service
+        ServerSocketHandler.getInstance();//Instantiating Service
     }
 }
