@@ -21,13 +21,57 @@ public class ServerSocketHandler {
 
     private ServerSocketHandler()
     {
-        userDbControl = UserDbControl.getInstance();
-        try {
-            ServerSocket serverSocket = new ServerSocket(50000);
 
-            while(true)
+        userDbControl = UserDbControl.getInstance();
+
+        try {
+
+            ServerSocket serverSocket = new ServerSocket(50000); //This is for normal operation handle
+            ServerSocket serverSocket1 = new ServerSocket(45555); //This port for updating user list
+            ServerSocket serverSocket2 = new ServerSocket(58555); //This port for updating car list
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true)
+                    {
+                        Socket socket = null;
+                        try {
+                            Socket socket1 = serverSocket1.accept();
+                            System.out.println(socket1.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true)
+                    {
+                        Socket socket = null;
+                        try {
+                            Socket socket2 = serverSocket2.accept();
+                            System.out.println(socket2.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+
+            while (true) //First one can run on this thread gracefully
             {
-                Socket socket = serverSocket.accept();
+                Socket socket = null;
+                try {
+                    socket = serverSocket.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 necessaryActionTaker(socket);
             }
 
