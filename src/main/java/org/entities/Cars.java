@@ -1,12 +1,13 @@
-package sharedClasses;
+package org.entities;
 
-import java.io.Serial;
-import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
-public class Car implements Serializable {
-    @Serial
-    private final long serialUID = 5641515L;
+@Entity
+public class Cars {
+    @Id
     private String CarReg;
+    private int quantity;
     private int YearMade;
     private String Colour1;
     private String Colour2;
@@ -14,20 +15,25 @@ public class Car implements Serializable {
     private String CarMake;
     private String CarModel;
     private int Price;
+    private String image;
 
-    public Car(String[] str) {
-        CarReg = str[0];
-        YearMade = Integer.parseInt(str[1]);
-        Colour1 = str[2];
-        Colour2 = str[3];
-        Colour3 = str[4];
-        CarMake = str[5];
-        CarModel = str[6];
-        Price = Integer.parseInt(str[7]);
+    public Cars() {
     }
 
-    public Car() {
-
+    public Cars(String carReg, int quantity, int yearMade,
+                String colour1, String colour2, String colour3,
+                String carMake, String carModel, int price, String image)
+    {
+        CarReg = carReg;
+        this.quantity = quantity;
+        YearMade = yearMade;
+        Colour1 = colour1;
+        Colour2 = colour2;
+        Colour3 = colour3;
+        CarMake = carMake;
+        CarModel = carModel;
+        Price = price;
+        this.image = image;
     }
 
     public String getCarReg() {
@@ -36,6 +42,14 @@ public class Car implements Serializable {
 
     public void setCarReg(String carReg) {
         CarReg = carReg;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public int getYearMade() {
@@ -92,5 +106,13 @@ public class Car implements Serializable {
 
     public void setPrice(int price) {
         Price = price;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
