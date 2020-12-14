@@ -4,10 +4,8 @@ import org.dboperation.UserDbControl;
 import org.entities.AllUserAndRollEntity;
 import sharedClasses.LoginReq;
 import sharedClasses.User;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -18,6 +16,7 @@ public class ServerSocketHandler {
     private static ServerSocketHandler serverSocketHandler = null;
     private final UserDbControl userDbControl;
     private static final String server_image_directory = "H:/sever_image/";
+    private static List<ClientHandlerUserListUpdate> clientHandlerUserListUpdateArrayList = new ArrayList<>();
 
     private ServerSocketHandler()
     {
@@ -38,7 +37,8 @@ public class ServerSocketHandler {
                         Socket socket = null;
                         try {
                             Socket socket1 = serverSocket1.accept();
-                            System.out.println(socket1.toString());
+                            ClientHandlerUserListUpdate clientHandlerUserListUpdate = new ClientHandlerUserListUpdate(socket1);
+                            clientHandlerUserListUpdateArrayList.add(clientHandlerUserListUpdate);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -55,7 +55,6 @@ public class ServerSocketHandler {
                         Socket socket = null;
                         try {
                             Socket socket2 = serverSocket2.accept();
-                            System.out.println(socket2.toString());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -68,11 +67,10 @@ public class ServerSocketHandler {
                 Socket socket = null;
                 try {
                     socket = serverSocket.accept();
+                    necessaryActionTaker(socket);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                necessaryActionTaker(socket);
             }
 
         } catch (IOException e) {
@@ -97,19 +95,19 @@ public class ServerSocketHandler {
 
                 try {
 
-                    ClientHandler clientHandler = new ClientHandler(socket);
+                    ClientHandlerNormal clientHandlerNormal = new ClientHandlerNormal(socket);
 
                     String role = null;
 
                     while(role == null)
                     {
-                        role = credentialChecker(userDbControl, clientHandler); //Checking for credentials
+                        role = credentialChecker(userDbControl, clientHandlerNormal); //Checking for credentials
 
                         if(role != null)
                         {
                             if(role.equals("Admin"))
                             {
-                                adminControls(userDbControl, clientHandler);
+                                adminControls(userDbControl, clientHandlerNormal);
                             }
                             else if(role.equals("Viewer"))
                             {
@@ -123,7 +121,7 @@ public class ServerSocketHandler {
 
                         else
                         {
-                            role =  credentialChecker(userDbControl, clientHandler);
+                            role =  credentialChecker(userDbControl, clientHandlerNormal);
                         }
                     }
 
@@ -133,7 +131,6 @@ public class ServerSocketHandler {
             }
         }.start();
     }
-
 
     private static void manufacturerControls(Socket socket)
     {
@@ -158,20 +155,20 @@ public class ServerSocketHandler {
         }
     }
 
-    private static void adminControls(UserDbControl userDbControl, ClientHandler clientHandler) //This is on different thread for every connection
+    private static void adminControls(UserDbControl userDbControl, ClientHandlerNormal clientHandlerNormal) //This is on different thread for every connection
     {
         AllUserAndRollEntity allUserAndRollEntity = new AllUserAndRollEntity();
         String admin_req_from_client;
 
         try {
 
-            ObjectInputStream objectInputStream = clientHandler.getObjectInputStream();
+            ObjectInputStream objectInputStream = clientHandlerNormal.getObjectInputStream();
             admin_req_from_client = (String) objectInputStream.readUnshared();
 
             switch (admin_req_from_client) {
 
                 case "1" -> {
-                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
+                    ObjectInputStream objectInputStream1 = clientHandlerNormal.getObjectInputStream();
                     User user = (User) objectInputStream1.readObject();
 
                     String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -188,31 +185,33 @@ public class ServerSocketHandler {
 
                     if (userDbControl.createNewUser(allUserAndRollEntity).equals("success")) {
 
-                        ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                        ObjectOutputStream objectOutputStream = clientHandlerNormal.getObjectOutputStream();
                         String response = "success";
                         objectOutputStream.writeObject(response);
                         objectOutputStream.flush();
 
-                        adminControls(userDbControl, clientHandler);
+                        notify_client_about_updated_user_list(userDbControl);
+
+                        adminControls(userDbControl, clientHandlerNormal);
 
                     } else {
-                        ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                        ObjectOutputStream objectOutputStream = clientHandlerNormal.getObjectOutputStream();
                         String response = "failed";
                         objectOutputStream.writeObject(response);
                         objectOutputStream.flush();
 
-                        adminControls(userDbControl, clientHandler);
+                        adminControls(userDbControl, clientHandlerNormal);
                     }
                 }
 
                 case "2" -> {
 
                     List<User> userList = new ArrayList<>(userDbControl.getAllUser());
-                    ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                    ObjectOutputStream objectOutputStream = clientHandlerNormal.getObjectOutputStream();
                     objectOutputStream.writeObject(userList);
                     objectOutputStream.flush();
 
-                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
+                    ObjectInputStream objectInputStream1 = clientHandlerNormal.getObjectInputStream();
                     try {
                         User user = (User) objectInputStream1.readObject();
                         AllUserAndRollEntity allUserAndRollEntity1 = new AllUserAndRollEntity();
@@ -226,17 +225,17 @@ public class ServerSocketHandler {
                         e.printStackTrace();
                     }
 
-                    adminControls(userDbControl, clientHandler);//Going to main menu again
+                    adminControls(userDbControl, clientHandlerNormal);//Going to main menu again
 
                 }
                 case "3" -> {
 
                     List<User> userList = new ArrayList<>(userDbControl.getAllUser());
-                    ObjectOutputStream objectOutputStream = clientHandler.getObjectOutputStream();
+                    ObjectOutputStream objectOutputStream = clientHandlerNormal.getObjectOutputStream();
                     objectOutputStream.writeObject(userList);
                     objectOutputStream.flush();
 
-                    ObjectInputStream objectInputStream1 = clientHandler.getObjectInputStream();
+                    ObjectInputStream objectInputStream1 = clientHandlerNormal.getObjectInputStream();
                     try {
                         User user = (User) objectInputStream1.readObject();
                         AllUserAndRollEntity allUserAndRollEntity1 = new AllUserAndRollEntity();
@@ -247,7 +246,7 @@ public class ServerSocketHandler {
                         e.printStackTrace();
                     }
 
-                    adminControls(userDbControl, clientHandler);//Going to main menu again
+                    adminControls(userDbControl, clientHandlerNormal);//Going to main menu again
 
                 }
             }
@@ -257,10 +256,34 @@ public class ServerSocketHandler {
         }
     }
 
-    private static String  credentialChecker(UserDbControl userDbControl, ClientHandler socket)
+    private static void notify_client_about_updated_user_list(UserDbControl userDbControl)
+    {
+        List<User> userList = new ArrayList<>(userDbControl.getAllUser()); //Getting the updated list of client
+        List<ClientHandlerUserListUpdate> auxList = new ArrayList<>();
+
+        auxList.addAll(clientHandlerUserListUpdateArrayList);
+
+        int size = clientHandlerUserListUpdateArrayList.size();
+
+        for(int i=0; i<size; i++)
+        {
+            try
+            {
+                clientHandlerUserListUpdateArrayList.get(i).getObjectOutputStream().writeObject(userList);
+                clientHandlerUserListUpdateArrayList.get(i).getObjectOutputStream().flush();
+            }catch (Exception e)
+            {
+                auxList.remove(i);
+            }
+        }
+
+        clientHandlerUserListUpdateArrayList.clear();
+        clientHandlerUserListUpdateArrayList.addAll(auxList);
+    }
+
+    private static String  credentialChecker(UserDbControl userDbControl, ClientHandlerNormal socket)
     {
         try {
-
             ObjectInputStream objectInputStream = socket.getObjectInputStream();
             LoginReq loginReq = (LoginReq) objectInputStream.readObject();//Getting loginReq object from user
 
