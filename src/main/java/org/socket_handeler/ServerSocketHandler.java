@@ -220,6 +220,8 @@ public class ServerSocketHandler {
                         allUserAndRollEntity1.setPassword(user.getPassword());
                         allUserAndRollEntity1.setId(user.getUser_id());
                         userDbControl.updateUser(allUserAndRollEntity1);
+
+                        notify_client_about_updated_user_list(userDbControl);
                     } catch (IOException | ClassNotFoundException e) {
                         //t.cancel();
                         e.printStackTrace();
@@ -241,6 +243,8 @@ public class ServerSocketHandler {
                         AllUserAndRollEntity allUserAndRollEntity1 = new AllUserAndRollEntity();
                         allUserAndRollEntity1.setId(user.getUser_id());
                         userDbControl.removeUser(allUserAndRollEntity1);
+
+                        notify_client_about_updated_user_list(userDbControl);
                     } catch (IOException | ClassNotFoundException e) {
                         //t.cancel();
                         e.printStackTrace();
