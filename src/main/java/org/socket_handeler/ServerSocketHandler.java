@@ -4,7 +4,6 @@ import org.dboperation.UserDbControl;
 import org.entities.AllUserAndRollEntity;
 import sharedClasses.LoginReq;
 import sharedClasses.User;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
