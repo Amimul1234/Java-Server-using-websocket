@@ -5,12 +5,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class ClientHandlerNormal {
+public class ClientHandlerGeneral {
     private Socket socket;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
 
-    public ClientHandlerNormal(Socket socket) {
+    public ClientHandlerGeneral(Socket socket) {
         this.socket = socket;
         try {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
