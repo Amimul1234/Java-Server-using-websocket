@@ -1,5 +1,6 @@
 package org.socket_handeler;
 
+import org.dboperation.CarDbControl;
 import org.dboperation.UserDbControl;
 import java.io.*;
 import java.net.ServerSocket;
@@ -9,12 +10,15 @@ import java.util.*;
 public class ServerSocketHandler {
 
     private static UserDbControl userDbControl = null;
+    private static CarDbControl carDbControl = null;
     private static ServerSocketHandler serverSocketHandler = null;
     public static List<ClientHandlerUserListUpdate> clientHandlerUserListUpdateArrayList = new ArrayList<>();
+    public static List<ClientHandlerCarUpdate> clientHandlerCarUpdateList = new ArrayList<>();
 
     private ServerSocketHandler()
     {
         userDbControl = UserDbControl.getInstance();
+        carDbControl = CarDbControl.getInstance();
 
         try {
 
@@ -57,7 +61,8 @@ public class ServerSocketHandler {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-
+                                    ClientHandlerCarUpdate clientHandlerCarUpdate = new ClientHandlerCarUpdate(socket2);
+                                    clientHandlerCarUpdateList.add(clientHandlerCarUpdate);
                                 }
                             }).start();
 
@@ -76,7 +81,7 @@ public class ServerSocketHandler {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            new Operation_handler(socket, userDbControl);
+                            new Operation_handler(socket, userDbControl, carDbControl);
                         }
                     }).start();
 

@@ -76,6 +76,7 @@ public class UserDbControl{
         em.getTransaction().begin();
         List<AllUserAndRollEntity> allUserAndRollEntityList= em.createQuery("SELECT t from AllUserAndRollEntity t").getResultList();
         em.getTransaction().commit();
+
         List<User> userList = new ArrayList<>();
 
         for(AllUserAndRollEntity allUserAndRollEntity : allUserAndRollEntityList)

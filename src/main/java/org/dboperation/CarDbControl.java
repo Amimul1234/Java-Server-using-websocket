@@ -1,9 +1,15 @@
 package org.dboperation;
 
 import org.entities.Cars;
+import sharedClasses.Car_shared;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CarDbControl {
 
@@ -44,23 +50,72 @@ public class CarDbControl {
         em.getTransaction().commit();
     }
 
-    /*
     public synchronized void updateCar(Cars cars)
     {
-        Cars cars1 = em.find(Cars.class, cars.getCarReg());
+        Cars car1 = em.find(Cars.class, cars.getCarReg());
 
-        String image = cars1.getImage();
+        String image = car1.getImage();
 
         em.getTransaction().begin();
 
-        allUserAndRollEntity1.setId(allUserAndRollEntity.getId());
-        allUserAndRollEntity1.setName(allUserAndRollEntity.getName());
-        allUserAndRollEntity1.setPassword(allUserAndRollEntity.getPassword());
-        allUserAndRollEntity1.setRole(allUserAndRollEntity.getRole());
-        allUserAndRollEntity1.setImage(image);
+        car1.setCarReg(cars.getCarReg());
+        car1.setQuantity(cars.getQuantity());
+        car1.setYearMade(cars.getYearMade());
+        car1.setColour1(cars.getColour1());
+        car1.setColour2(cars.getColour2());
+        car1.setColour3(cars.getColour3());
+        car1.setCarMake(cars.getCarMake());
+        car1.setCarModel(cars.getCarModel());
+        car1.setPrice(cars.getPrice());
+        car1.setImage(image);
+
         em.getTransaction().commit();
     }
 
-     */
+    public synchronized List<Car_shared> getAllCar()
+    {
+        em.getTransaction().begin();
+
+        List<Cars> carsList = em.createQuery("SELECT t from Cars t").getResultList();
+
+        em.getTransaction().commit();
+
+        List<Car_shared> car_sharedList = new ArrayList<>();
+
+        for(Cars cars : carsList)
+        {
+            Car_shared car_shared = manipulate(cars);
+            car_sharedList.add(car_shared);
+        }
+
+        return car_sharedList;
+    }
+
+    private Car_shared manipulate(Cars cars) {
+
+        Car_shared car_shared = new Car_shared();
+
+        car_shared.setCarReg(cars.getCarReg());
+        car_shared.setQuantity(cars.getQuantity());
+        car_shared.setYearMade(cars.getYearMade());
+        car_shared.setColour1(cars.getColour1());
+        car_shared.setColour2(cars.getColour2());
+        car_shared.setColour3(cars.getColour3());
+        car_shared.setCarMake(cars.getCarMake());
+        car_shared.setCarModel(cars.getCarModel());
+        car_shared.setPrice(cars.getPrice());
+
+        try {
+            File file = new File(cars.getImage());
+            FileInputStream fileInputStream = new FileInputStream(file.getPath());
+            car_shared.setByteArraySize((int) file.length());
+            fileInputStream.read(car_shared.getCarImage(), 0, car_shared.getCarImage().length);
+            fileInputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return car_shared;
+    }
 
 }

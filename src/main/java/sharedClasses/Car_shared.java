@@ -119,4 +119,9 @@ public class Car_shared implements Serializable {
     public void setCarImage(byte[] carImage) {
         this.carImage = carImage;
     }
+
+    public void setByteArraySize(int size)
+    {
+        carImage = new byte[size];
+    }
 }
