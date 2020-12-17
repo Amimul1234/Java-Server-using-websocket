@@ -128,7 +128,7 @@ public class Operation_handler {
                         objectOutputStream.writeObject(response);
                         objectOutputStream.flush();
 
-                        notify_client_about_updated_user_list();
+                        notify_client_about_updated_car_list();
 
                         manufacturerControls(clientHandlerGeneral);
 
@@ -344,7 +344,6 @@ public class Operation_handler {
         List<User> userList = new ArrayList<>(userDbControl.getAllUser()); //Getting the updated list of client
 
         int size = ServerSocketHandler.clientHandlerUserListUpdateArrayList.size();
-        System.out.println(String.valueOf(size));
 
         for(int i=0; i<size; i++)
         {
@@ -369,8 +368,8 @@ public class Operation_handler {
         {
             try
             {
-                ServerSocketHandler.clientHandlerUserListUpdateArrayList.get(i).getObjectOutputStream().writeObject(car_sharedList);
-                ServerSocketHandler.clientHandlerUserListUpdateArrayList.get(i).getObjectOutputStream().flush();
+                ServerSocketHandler.clientHandlerCarUpdateList.get(i).getObjectOutputStream().writeObject(car_sharedList);
+                ServerSocketHandler.clientHandlerCarUpdateList.get(i).getObjectOutputStream().flush();
             }catch (Exception e)
             {
                 e.printStackTrace();
