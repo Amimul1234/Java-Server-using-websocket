@@ -86,6 +86,7 @@ public class Operation_handler {
 
         try {
             ObjectInputStream objectInputStream = clientHandlerGeneral.getObjectInputStream();
+
             manufacturer_req_from_client = (String) objectInputStream.readUnshared();
 
             switch (manufacturer_req_from_client)
