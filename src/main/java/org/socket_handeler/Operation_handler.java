@@ -64,19 +64,65 @@ public class Operation_handler {
 
     private void viewerControls(ClientHandlerGeneral clientHandlerGeneral)
     {
-        /*
+        Cars cars = new Cars();
+        String manufacturer_req_from_client;
 
-        try
-        {
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        try {
+            ObjectInputStream objectInputStream = clientHandlerGeneral.getObjectInputStream();
 
-            List<String> clientResponse = (List<String>) objectInputStream.readObject();
-        }catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+            manufacturer_req_from_client = (String) objectInputStream.readUnshared();
 
-         */
+            switch (manufacturer_req_from_client) {
+
+                case "1" -> {
+
+                    List<Car_shared> car_sharedList = new ArrayList<>(carDbControl.getAllCar());
+
+                    ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                    objectOutputStream.writeObject(car_sharedList);
+                    objectOutputStream.flush();
+                }
+                case "2"->{
+                    while(true)
+                    {
+
+                        String registration_number = (String) objectInputStream.readObject();
+
+                        if(registration_number.equals("Back to main menu"))
+                        {
+                            viewerControls(clientHandlerGeneral);
+                            break;
+                        }
+
+                        else
+                        {
+                            Car_shared car_shared = carDbControl.findCarByReg(registration_number);
+
+                            if(car_shared != null)
+                            {
+                                ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                objectOutputStream.writeObject(car_shared);
+                                objectOutputStream.flush();
+                            }
+                            else
+                            {
+                                ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                String message = new String("Car with given registration number does not exists");
+                                objectOutputStream.writeObject(message);
+                                objectOutputStream.flush();
+                            }
+                        }
+                    }
+                }
+
+                case "3"->{
+
+                }
+            }
+        }catch (Exception e) {
+                e.printStackTrace();
+            }
+
     }
 
     private void manufacturerControls(ClientHandlerGeneral clientHandlerGeneral)

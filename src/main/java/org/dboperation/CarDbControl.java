@@ -50,6 +50,17 @@ public class CarDbControl {
         em.getTransaction().commit();
     }
 
+    public synchronized Car_shared findCarByReg(String registration_number)
+    {
+        try
+        {
+            return manipulate(em.find(Cars.class, registration_number));
+        }catch (Exception e)
+        {
+            return null;
+        }
+    }
+
     public synchronized void updateCar(Cars cars)
     {
         Cars car1 = em.find(Cars.class, cars.getCarReg());
@@ -93,29 +104,38 @@ public class CarDbControl {
 
     private Car_shared manipulate(Cars cars) {
 
-        Car_shared car_shared = new Car_shared();
-
-        car_shared.setCarReg(cars.getCarReg());
-        car_shared.setQuantity(cars.getQuantity());
-        car_shared.setYearMade(cars.getYearMade());
-        car_shared.setColour1(cars.getColour1());
-        car_shared.setColour2(cars.getColour2());
-        car_shared.setColour3(cars.getColour3());
-        car_shared.setCarMake(cars.getCarMake());
-        car_shared.setCarModel(cars.getCarModel());
-        car_shared.setPrice(cars.getPrice());
-
-        try {
-            File file = new File(cars.getImage());
-            FileInputStream fileInputStream = new FileInputStream(file.getPath());
-            car_shared.setByteArraySize((int) file.length());
-            fileInputStream.read(car_shared.getCarImage(), 0, car_shared.getCarImage().length);
-            fileInputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(cars == null)
+        {
+            return null;
         }
 
-        return car_shared;
+        else
+        {
+            Car_shared car_shared = new Car_shared();
+
+            car_shared.setCarReg(cars.getCarReg());
+            car_shared.setQuantity(cars.getQuantity());
+            car_shared.setYearMade(cars.getYearMade());
+            car_shared.setColour1(cars.getColour1());
+            car_shared.setColour2(cars.getColour2());
+            car_shared.setColour3(cars.getColour3());
+            car_shared.setCarMake(cars.getCarMake());
+            car_shared.setCarModel(cars.getCarModel());
+            car_shared.setPrice(cars.getPrice());
+
+            try {
+                File file = new File(cars.getImage());
+                FileInputStream fileInputStream = new FileInputStream(file.getPath());
+                car_shared.setByteArraySize((int) file.length());
+                fileInputStream.read(car_shared.getCarImage(), 0, car_shared.getCarImage().length);
+                fileInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return car_shared;
+
+        }
     }
 
 }
