@@ -1,10 +1,12 @@
 package org.dboperation;
 
+import org.entities.AllUserAndRollEntity;
 import org.entities.Cars;
 import sharedClasses.Car_shared;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,6 +57,36 @@ public class CarDbControl {
         try
         {
             return manipulate(em.find(Cars.class, registration_number));
+        }catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    public synchronized List<Car_shared> findCarListByCarMake(String s) {
+        try
+        {
+            Query query = em.createQuery(
+                    "SELECT c FROM Cars c WHERE c.CarMake = :carmake");
+
+            query.setParameter("carmake", s);
+            List<Cars> carsList = query.getResultList();
+            List<Car_shared> car_sharedList = new ArrayList<>();
+
+            for(Cars cars : carsList)
+            {
+                car_sharedList.add(manipulate(cars));
+            }
+
+            if(car_sharedList.size() > 0)
+            {
+                return car_sharedList;
+            }
+            else
+            {
+                return null;
+            }
+
         }catch (Exception e)
         {
             return null;
@@ -138,4 +170,25 @@ public class CarDbControl {
         }
     }
 
+    public synchronized void reduceQuantity(Cars cars1) {
+
+        Cars car1 = em.find(Cars.class, cars1.getCarReg());
+
+        String image = car1.getImage();
+
+        em.getTransaction().begin();
+
+        car1.setCarReg(cars1.getCarReg());
+        car1.setQuantity(cars1.getQuantity());
+        car1.setYearMade(cars1.getYearMade());
+        car1.setColour1(cars1.getColour1());
+        car1.setColour2(cars1.getColour2());
+        car1.setColour3(cars1.getColour3());
+        car1.setCarMake(cars1.getCarMake());
+        car1.setCarModel(cars1.getCarModel());
+        car1.setPrice(cars1.getPrice());
+        car1.setImage(image);
+
+        em.getTransaction().commit();
+    }
 }

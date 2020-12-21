@@ -81,6 +81,14 @@ public class Operation_handler {
                     ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
                     objectOutputStream.writeObject(car_sharedList);
                     objectOutputStream.flush();
+
+                    String message = (String) clientHandlerGeneral.getObjectInputStream().readObject();
+
+                    if(message.equals("back to main menu"))
+                    {
+                        viewerControls(clientHandlerGeneral);
+                    }
+
                 }
                 case "2"->{
                     while(true)
@@ -116,6 +124,102 @@ public class Operation_handler {
                 }
 
                 case "3"->{
+                    while(true)
+                    {
+                        String registration_number = (String) objectInputStream.readObject();
+
+                        if(registration_number.equals("Back to main menu"))
+                        {
+                            viewerControls(clientHandlerGeneral);
+                            break;
+                        }
+                        else
+                        {
+                            String[] carmake = registration_number.split("____");
+
+                            List<Car_shared> car_sharedList = carDbControl.findCarListByCarMake(carmake[0]);
+
+                            if(car_sharedList != null)
+                            {
+                                if(carmake[1].equalsIgnoreCase("any"))
+                                {
+                                    ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                    objectOutputStream.writeObject(car_sharedList);
+                                    objectOutputStream.flush();
+                                }
+                                else
+                                {
+                                    List<Car_shared> modified_car_shared = new ArrayList<>();
+
+                                    for(Car_shared car_shared : car_sharedList)
+                                    {
+                                        if(car_shared.getCarModel().equalsIgnoreCase(carmake[1]))
+                                        {
+                                            modified_car_shared.add(car_shared);
+                                        }
+                                    }
+
+                                    if(modified_car_shared.size() > 0)
+                                    {
+                                        ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                        objectOutputStream.writeObject(modified_car_shared);
+                                        objectOutputStream.flush();
+                                    }
+                                    else
+                                    {
+                                        ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                        String message = new String("Car with given car make does not exists");
+                                        objectOutputStream.writeObject(message);
+                                        objectOutputStream.flush();
+                                    }
+                                }
+                            }
+
+                            else
+                            {
+                                ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                                String message = new String("Car with given car make does not exists");
+                                objectOutputStream.writeObject(message);
+                                objectOutputStream.flush();
+                            }
+                        }
+                    }
+                }
+                case "4"->{
+
+                    List<Car_shared> car_sharedList = new ArrayList<>(carDbControl.getAllCar());
+
+                    ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
+                    objectOutputStream.writeObject(car_sharedList);
+                    objectOutputStream.flush();
+
+                    ObjectInputStream objectInputStream1 = clientHandlerGeneral.getObjectInputStream();
+
+                    try {
+
+                        Car_shared car_shared = (Car_shared) objectInputStream1.readObject();
+
+                        Cars cars1 = new Cars();
+
+                        cars1.setCarReg(car_shared.getCarReg());
+                        cars1.setQuantity(car_shared.getQuantity());
+                        cars1.setYearMade(car_shared.getYearMade());
+                        cars1.setColour1(car_shared.getColour1());
+                        cars1.setColour2(car_shared.getColour2());
+                        cars1.setColour3(car_shared.getColour3());
+                        cars1.setCarMake(car_shared.getCarMake());
+                        cars1.setCarModel(car_shared.getCarModel());
+                        cars1.setPrice(car_shared.getPrice());
+
+                        carDbControl.reduceQuantity(cars1);
+
+                        notify_client_about_updated_car_list();
+
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    viewerControls(clientHandlerGeneral);
 
                 }
             }
@@ -138,11 +242,19 @@ public class Operation_handler {
             switch (manufacturer_req_from_client)
             {
                 case "1"-> {
+
                     List<Car_shared> car_sharedList = new ArrayList<>(carDbControl.getAllCar());
 
                     ObjectOutputStream objectOutputStream = clientHandlerGeneral.getObjectOutputStream();
                     objectOutputStream.writeObject(car_sharedList);
                     objectOutputStream.flush();
+
+                    String message = (String) clientHandlerGeneral.getObjectInputStream().readObject();
+
+                    if(message.equals("back to main menu"))
+                    {
+                        manufacturerControls(clientHandlerGeneral);
+                    }
                 }
                 case "2"->{
 
@@ -199,6 +311,7 @@ public class Operation_handler {
                     ObjectInputStream objectInputStream1 = clientHandlerGeneral.getObjectInputStream();
 
                     try {
+
                         Car_shared car_shared = (Car_shared) objectInputStream1.readObject();
 
                         Cars cars1 = new Cars();
@@ -212,7 +325,7 @@ public class Operation_handler {
                         cars1.setCarMake(car_shared.getCarMake());
                         cars1.setCarModel(car_shared.getCarModel());
                         cars1.setPrice(car_shared.getPrice());
-                        carDbControl.updateCar(cars);
+                        carDbControl.updateCar(cars1);
 
                         notify_client_about_updated_car_list();
 
@@ -272,6 +385,7 @@ public class Operation_handler {
             switch (admin_req_from_client) {
 
                 case "1" -> {
+
                     ObjectInputStream objectInputStream1 = clientHandlerGeneral.getObjectInputStream();
                     User user = (User) objectInputStream1.readObject();
 
@@ -324,8 +438,11 @@ public class Operation_handler {
                         allUserAndRollEntity1.setName(user.getName());
                         allUserAndRollEntity1.setPassword(user.getPassword());
                         allUserAndRollEntity1.setId(user.getUser_id());
+
                         userDbControl.updateUser(allUserAndRollEntity1);
+
                         notify_client_about_updated_user_list();
+
                     } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -362,7 +479,7 @@ public class Operation_handler {
         }
     }
 
-    private String  credentialChecker(ClientHandlerGeneral socket)
+    private String credentialChecker(ClientHandlerGeneral socket)
     {
         try {
             ObjectInputStream objectInputStream = socket.getObjectInputStream();
